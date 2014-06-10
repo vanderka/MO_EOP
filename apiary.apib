@@ -1,0 +1,612 @@
+FORMAT: 1A
+HOST: http://www.to.do.url
+
+# MO_EOP API
+
+Navrh servicov pre projekt MO_EOP
+
+##Opis pouzitych server response codov
+
+- 200 `OK` - the request was successful (some API calls may return 201 instead).
+- 201 `Created` - the request was successful and a resource was created.
+- 204 `No Content` - the request was successful but there is no representation to return (i.e. the response is empty).
+- 400 `Bad Request` - the request could not be understood or was missing required parameters.
+- 401 `Unauthorized` - authentication failed or user doesn't have permissions for requested operation.
+- 403 `Forbidden` - access denied.
+- 404 `Not Found` - resource was not found
+- 405 `Method Not Allowed` - requested method is not supported for resource.
+
+##Zoznam pouzitych error kodov a ich vyznam
+
+- `104010` - Autorizacny kod vyprsal
+- `104040` - Zadany objekt nebol najdeny
+- `104041` - Hladany uzivatel neexistuje
+
+# Group Auth
+
+####**NEPOUZIVA SA**
+
+Authorization endpoint  
+Táto sekcia popisuje službu na autorizáciu a autentifikáciu používateľa.
+
+## Token [/token]
+### Ziskat auth token [POST]
+
+Ak chce klient pristupovať k zdrojom na servery(úlohy, dokumenty, atd..), potrebuje k tomu autorizačný token (auth_token), ktorý identifikuje daneho používateľa pre server.
+Auth_token(ako aj refresh token) má konečnú platnosť, čím sa zaručí ochrana informácií pri prípadnom získaní tohto tokenu nepovolanou osobou. Ak danému auth_tokenu vyprší platnosť, používateľ má možnosť vygenerovať
+nový auth_token s pomocou refresh_tokenu, ktorý obdrží spolu s auth_tokenom.
+Na to aby klient dostal príslušný auth_token (a s ním aj refresh_token), operácia mu umožňuje poslať požiadavku s nasledujúcimi parametrami:
+
+vyzaduju sa nasledovne parametre
+
+- `grant_type` password alebo refresh_token
+- `client_secret` client secret (privátny string) ktorý dodá server
+- `login` prihlasovacie meno používateľa(iba pre password grant_type)
+- `password` používateľove heslo(iba pre password grant_type)
+- `token` token pre refresh_token grant_type
+
++ Request password (application/json)
+
+            { 
+                "grant_type":"password",
+                "login":"test",
+                "password":"pass123"
+                "client_secret":"CLIENT_SECRET"
+            }
+            
++ Request token (application/json)
+
+            { 
+                "grant_type":"refresh_token",
+                "client_secret":"CLIENT_SECRET"
+                "token":"j59epc1eqtzgjlpi14qaf2qsee0nv55mgpvn1us4"
+            }
+            
++ Response 200 (application/json)
+
+            {
+                "access_token": "f616a976491ac791e11c18c725beeace87b7da21",
+                "refresh_token": "58bf6030e7abfa9e4cd92479311062697d9e4f13"
+            }
+
+
+
+# Group Úlohy
+
+Táto sekcia popisuje službu úloh.
+
+## Úlohy [/tasks]
+
+### list uloh [GET]
+
++ Request
+
+    + Headers
+    
+            Authorization: f616a976491ac791e11c18c725beeace87b7da21
+
+
++ Response 200 (application/json)
+
+            {
+                "tasks": [
+                    {
+                        "task_id":"123sada",
+                        "type":"10"
+                        "title":"Ziadost o dovolenku (styl na schvalenie)",
+                        "date":"2014-06-16T11:59:00+00:00",
+                        "user_from": {
+                            "id":"14151",
+                            "name":"Jozko Mrkvicka"
+                        },
+                        "user_to": {
+                            "id":"13122",
+                            "name":"Ferko Kapusta"
+                        },
+                        "fields": [
+                            {
+                                "id":"252aas12"
+                                "order":"1"
+                                "type":"date"
+                                "label":"Od"
+                                "value":"2014-07-16T11:59:00+00:00"
+                            },
+                            {
+                                "id":"80ass12"
+                                "order":"2"
+                                "type":"date"
+                                "label":"Do"
+                                "value":"2014-07-28T11:59:00+00:00"
+                            },
+                            {
+                                "id":"987681"
+                                "order":"3"
+                                "type":"text"
+                                "label":"Miesto pobytu"
+                                "value":"Pariz, Francuzsko"
+                            },
+                            {
+                                "id":"89797sh2r"
+                                "order":"4"
+                                "type":"text"
+                                "label":"Poznamka"
+                                "value":"Toto je poznamka ku ziadosti"
+                            }
+                        ],
+                        "actions": [
+                            {
+                                "id":"8723hfd76"
+                                "label":"Tato akcia sa zobrazi v hornom menu a nevyzaduje poznamku"
+                                "note_req":"0"
+                            },
+                        ],
+                        "documents": [
+                            {
+                                "id":"2342fds"
+                                "link":"http://fzs.sve-mo.ba/sites/default/files/dokumenti-vijesti/sample.pdf"
+                                "name":"Dolezity pdf dokument"
+                                "type":"pdf"
+                            }
+                        ]
+                    },
+                    {
+                        "task_id":"6876sd786fs",
+                        "type":"20"
+                        "title":"Testovacia uloha na pripomienkovanie (styl na vyjadrenie)",
+                        "date":"2014-06-14T11:59:00+00:00",
+                        "user_from": {
+                            "id":"4123",
+                           "name":"Janko Hrasko"
+                        },
+                        "user_to": {
+                            "id":"13122",
+                            "name":"Ferko Kapusta"
+                        },
+                        "fields": [
+                            {
+                                "id":"234f223"
+                                "order":"1"
+                                "type":"date"
+                                "label":"Toto je dolezity datum"
+                                "value":"2014-08-16T11:59:00+00:00"
+                            },
+                            {
+                                "id":"836fhw6"
+                                "order":"2"
+                                "type":"text"
+                                "label":"Toto je dolezity text ktory mozete pripomienkovat"
+                                "value":""Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+                            },
+                            {
+                                "id":"j6wls9j"
+                                "order":"3"
+                                "type":"text"
+                                "label":"Lubovolny nadpis"
+                                "value":"A lubovolna hodnota"
+                            }
+                        ],
+                        "actions": [
+                        ],
+                        "documents": [
+                            {
+                                "id":"2342fds"
+                                "link":"http://fzs.sve-mo.ba/sites/default/files/dokumenti-vijesti/sample.pdf"
+                                "name":"Dolezity pdf dokument ktory treba pripomienkovat"
+                                "type":"pdf"
+                            }
+                        ]
+                    },
+                    {
+                        "task_id":"897sdh23897fd",
+                        "type":"30"
+                        "title":"Dolezita informacia na vedomie (styl na vedomie)",
+                        "date":"2014-06-19T11:59:00+00:00",
+                        "user_from": {
+                            "id":"4123",
+                            "name":"Janko Hrasko"
+                        },
+                        "user_to": {
+                            "id":"13122",
+                            "name":"Ferko Kapusta"
+                        },
+                        "fields": [
+                            {
+                                "id":"234f223"
+                                "order":"2"
+                                "type":"date"
+                                "label":"V tento datum sa nieco stane"
+                                "value":"2014-06-19T15:59:00+00:00"
+                            },
+                            {
+                                "id":"836fhw6"
+                                "order":"1"
+                                "type":"text"
+                                "label":"Toto je nadpis"
+                                "value":"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+                            },
+                        ],
+                        "actions": [
+                            {
+                                "id":"23422fd478"
+                                "name":"Lubovolna akcia ktora suvisi s touto ulohou; bez poznamky"
+                                "note_req":"0"
+                            }
+                        ],
+                        "documents": [
+                            {
+                                "id":"2342fds"
+                                "link":"http://txt2html.sourceforge.net/sample.txt"
+                                "name":"Textovy dokument s podrobnym popisom"
+                                "type":"txt"
+                            }
+                        ]
+                    },
+                    {
+                        "task_id":"9ikf72nf",
+                        "type":"12345"
+                        "title":"Detail tejto ulohy sa zobrazi bez style",
+                        "date":"2014-06-19T11:59:00+00:00",
+                        "user_from": {
+                            "id":"4545",
+                            "name":"Stefan Jahoda"
+                        },
+                        "user_to": {
+                            "id":"13122",
+                            "name":"Ferko Kapusta"
+                        },
+                        "fields": [
+                            {
+                                "id":"8fj36djd"
+                                "order":"1"
+                                "type":"date"
+                                "label":"Zaciatok udalosti"
+                                "value":"2014-06-25T15:59:00+00:00"
+                            },
+                            {
+                                "id":"8fj36djd"
+                                "order":"2"
+                                "type":"date"
+                                "label":"Koniec udalosti"
+                                "value":"2014-06-26T08:59:00+00:00"
+                            },
+                            {
+                                "id":"836fhw6"
+                                "order":"1"
+                                "type":"text"
+                                "label":"Super Udalost 2014"
+                                "value":"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+                            },
+                        ],
+                        "actions": [
+                            {
+                                "id":"123dsa"
+                                "name":"Pridem (bez poznamky)"
+                                "note_req":"0"
+                            },  
+                            {
+                                "id":"123dsa"
+                                "name":"Nepridem (poznamka)"
+                                "note_req":"1"
+                            }
+                        ],
+                        "documents": [
+                            {
+                                "id":"2342fds"
+                                "link":"http://www.mod.gov.sk/data/files/456.jpg"
+                                "name":"Krasny obrazok akcie"
+                                "type":"jpg"
+                            }
+                        ]
+                    }
+                ]
+            }
+            
++ Response 401 (application/json)
+
+            {
+                "message":"auth token expired"
+                "code":"104010"
+            }
+
+
+## Akcia 'schvalit' [/tasks/{id}/action/approve]
+
++ Parameters
+
+    + id (string, required) ... idecko danej ulohy
+
+
+### uskotocnit akciu nad ulohou [POST]
+
++ Request (application/json)
+
+    + Headers
+    
+            Authorization: f616a976491ac791e11c18c725beeace87b7da21
+
+    + Body
+    
+            {
+                "note":"beriem na vedomie"
+            }
+            
+
++ Response 204
+
++ Response 401 (application/json)
+
+            {
+                "message":"auth token expired"
+                "code":"104010"
+            }
+
++ Response 404 (application/json)
+
+            {
+                "message":"resource not found"
+                "code":"104040"
+            }
+
+## Akcia 'neschvalit' [/tasks/{id}/action/disapprove]
+
++ Parameters
+
+    + id (string, required) ... idecko danej ulohy
+
+
+### uskotocnit akciu nad ulohou [POST]
+
++ Request (application/json)
+
+    + Headers
+    
+            Authorization: f616a976491ac791e11c18c725beeace87b7da21
+
+    + Body
+    
+            {
+                "note":"beriem na vedomie"
+            }
+            
+
++ Response 204
+
++ Response 401 (application/json)
+
+            {
+                "message":"auth token expired"
+                "code":"104010"
+            }
+
++ Response 404 (application/json)
+
+            {
+                "message":"resource not found"
+                "code":"104040"
+            }
+
+## Akcia 'na vyjadrenie' [/tasks/{id}/action/state]
+
++ Parameters
+
+    + id (string, required) ... idecko danej ulohy
+
+
+### uskotocnit akciu nad ulohou [POST]
+
++ Request (application/json)
+
+    + Headers
+    
+            Authorization: f616a976491ac791e11c18c725beeace87b7da21
+
+    + Body
+    
+            {
+                "note":"beriem na vedomie"
+            }
+            
+
++ Response 204
+
++ Response 401 (application/json)
+
+            {
+                "message":"auth token expired"
+                "code":"104010"
+            }
+
++ Response 404 (application/json)
+
+            {
+                "message":"resource not found"
+                "code":"104040"
+            }
+
+## Akcia 'na vedomie' [/tasks/{id}/action/accept]
+
++ Parameters
+
+    + id (string, required) ... idecko danej ulohy
+
+
+### uskotocnit akciu nad ulohou [POST]
+
++ Request (application/json)
+
+    + Headers
+    
+            Authorization: f616a976491ac791e11c18c725beeace87b7da21
+
+    + Body
+    
+            {
+                "note":"beriem na vedomie"
+            }
+            
+
++ Response 204
+
++ Response 401 (application/json)
+
+            {
+                "message":"auth token expired"
+                "code":"104010"
+            }
+
++ Response 404 (application/json)
+
+            {
+                "message":"resource not found"
+                "code":"104040"
+            }
+
+
+
+##  Lubovolne akcie nad ulohami [/tasks/{id}/action]
+
++ Parameters
+
+    + id (string, required) ... idecko danej ulohy
+
+### uskotocnit akciu nad ulohou [POST]
+
++ Request (application/json)
+
+    + Headers
+    
+            Authorization: f616a976491ac791e11c18c725beeace87b7da21
+
+    + Body
+    
+            {
+                "id":"234sdf23"
+                "note":"beriem na vedomie"
+            }
+            
+
++ Response 204
+
++ Response 401 (application/json)
+
+            {
+                "message":"auth token expired"
+                "code":"104010"
+            }
+
++ Response 404 (application/json)
+
+            {
+                "message":"resource not found"
+                "code":"104040"
+            }
+
+
+## Typy uloh [/tasks/types]
+
+Servica vrati zoznam typov uloh. Urcene pre filtrovanie uloh podla typu.  
+Rozne typy uloh maju ine UI zobrazenie detailu. Parameter `predef_style` urcuje akym sposobom sa zobrazi detail ulohy.
+
+- `predef_style=0` detail ulohy sa zobrazi bez preddefinovaneho stylu
+- `predef_style=1` detail ulohy sa zobrazi v style _"Na schvalenie"_
+- `predef_style=2` detail ulohy sa zobrazi v style _"Na vyjadrenie"_
+- `predef_style=3` detail ulohy sa zobrazi v style _"Na vedomie"_
+
+### ziskanie typov [GET]
+
++ Request
+
+    + Headers
+    
+            Authorization: f616a976491ac791e11c18c725beeace87b7da21
+
+
++ Response 200 (application/json)
+
+            {
+                "types": [
+                    {
+                        "predef_style":"1",
+                        "id":"10",
+                        "name":"Na schvalenie"
+                    },
+                    {
+                        "predef_style":"2",
+                        "id":"20",
+                        "name":"Na vyjadrenie"
+                    },
+                    {
+                        "predef_style":"3",
+                        "id":"30",
+                        "name":"Na vedomie"
+                    },
+                    {
+                        "predef_style":"0",
+                        "id":"12345",
+                        "name":"Typ ulohy bez specialneho stylu"
+                    }
+                ]
+            }
+
++ Response 401 (application/json)
+
+            {
+                "message":"auth token expired"
+                "code":"104010"
+            }
+
+
+# Group Uzivatelia
+
+####**NEPOUZIVA SA**
+
+Táto sekcia popisuje operáciu pre získanie používateľov pre potreby filtrovania
+
+## Uzivatelia [/users{?name}]
+
++ Parameters
+    + name (string, optional) ... meno podľa ktorého sa budú fulltextovo vyhľadávať používatelia
+
+### List uzivatelov [GET]
+
++ Request
+
+    + Headers
+    
+            Authorization: f616a976491ac791e11c18c725beeace87b7da21
+
+
++ Response 200 (application/json)
+
+            {
+                "users": [
+                    {
+                        "id":"14151",
+                        "name":"Jozko Mrkvicka"
+                    },
+                    {
+                        "id":"13122",
+                        "name":"Ferko Kapusta"
+                    },
+                    {
+                        "id":"4123",
+                        "name":"Janko Hrasko"
+                    },
+                ]
+            }
+            
++ Response 401 (application/json)
+
+            {
+                "message":"auth token expired"
+                "code":"104010"
+            }
+            
++ Response 404 (application/json)
+
+            {
+                "message":"resource not found"
+                "code":"104041"
+            }
+
+
